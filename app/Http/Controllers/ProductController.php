@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -78,9 +80,32 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'id' => [
+                Rule::exists('products')->where(function ($query) use($request) {
+                    return $query->where('id', $request->id);
+                }),
+            ],
+            'name' => 'required',
+            'quantity' => 'required|numeric',
+            'price' => 'required|numeric',
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors()->first(), 400);
+        }
+
+
+        Product::where('id', $request->id)->update([
+            'name' => $request->name,
+            'quantity' => $request->quantity,
+            'price' => $request->price,
+        ]);
+
+        return response()->json(['message' => 'Product update successful'], 200);
     }
 
     /**
@@ -93,4 +118,5 @@ class ProductController extends Controller
     {
         //
     }
+
 }
