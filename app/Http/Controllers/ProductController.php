@@ -14,7 +14,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+     
+        $products = Product::orderBy('created_at', 'asc')->get();
+
+        return response()->json(['products' => $products], 200);
     }
 
     /**
@@ -36,14 +39,14 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|unique:name,products',
-            'quanity' => 'required|numeric',
+            'name' => 'required|unique:products',
+            'quantity' => 'required|numeric',
             'price' => 'required|numeric',
         ]);
 
-        $product = Product::create($validated);
+        Product::create($validated);
 
-        return back()->with('message', 'Product added successfully');
+        return response()->json(['status' => true, 'message' => 'Product added successfully'], 201);
     }
 
     /**
