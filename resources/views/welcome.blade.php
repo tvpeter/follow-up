@@ -5,9 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}" />
         <title>Follow up test</title>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital@1&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital@1&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
@@ -51,29 +49,16 @@
                     <th scope="col">Price per Item</th>
                     <th scope="col">DateTime Submitted</th>
                     <th>Total Value</th>
+                    <th>Edit</th>
                   </tr>
                 </thead>
-                <tbody>
-                    @php $sum = 0; @endphp
-                    @foreach ($products as $index => $product)
-                    @php 
-                        $totalValue = $product->quantity * $product->price;
-                        $sum += $totalValue;
-                    @endphp
-                    <tr>
-                        <th>{{ $index+1 }}</th>
-                        <th scope="row">{{$product->name}} </th>
-                        <td>{{$product->quantity}}</td>
-                        <td> &#36;{{ number_format($product->price, 2)}}</td>
-                        <td>{{$product->created_at->format('Y-m-d h:i')}}</td>
-                        <td>&#36;{{ number_format($totalValue, 2)}}</td>
-                      </tr>
-                    @endforeach
+                <tbody id="displayData">
+                   
 
                     <tfoot>
                         <td colspan="4">SUM TOTAL</td>
                         
-                        <td colspan="2" class="text-end fw-bold">&#36;{{number_format($sum, 2)}}</td>
+                        <td colspan="2" class="text-end fw-bold" id="sumDisplay">&#36;</td>
                     </tfoot>
                   
                 </tbody>
@@ -81,8 +66,41 @@
          </div>
         </div>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
         <script>
+
+            $(document).ready(function(){
+                $.ajax({
+                    url: "/products",
+                    type: "get",
+                    data:{ 
+                        _token:'{{ csrf_token() }}'
+                    },
+                    cache: false,
+                    dataType: 'json',
+                    success: function(response){
+                        var tableRow = '';
+                        var i=1;
+                        var products = response.products;
+                        var sum = 0;
+                        $.each(products, function(index, row){
+                                var totalValue = row.quantity * row.price;
+                                sum += totalValue;
+                              tableRow +="<tr>"
+                                tableRow+="<td>"+ i++ +"</td><td>"+row.name+"</td><td>"+row.quantity+"</td><td>"+ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(row.price) +"</td>"
+                                +"<td>"+ new Date(row.created_at).toLocaleString()  +"</td>"
+                                +"<td>"+ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalValue) +"</td><td><a class='btn btn-primary' href='"+''+"'>Edit</a>" 
+                                +"</td>";
+                                tableRow+="</tr>";
+                        });
+                         $("#displayData").append(tableRow);
+                         $('#sumDisplay').html(new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(sum));
+
+                    }
+                });
+
+            });
+
             $(document).ready(function(){
             $(".btn").click(function(event){
                     event.preventDefault();
